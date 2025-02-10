@@ -31,6 +31,7 @@ except json.JSONDecodeError as e:
     exit(1)
 
 def init_db():
+    print('init_db()')
     """Initialize the database and create the logs table if it doesn't exist."""
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
@@ -110,5 +111,3 @@ def log_endpoint():
 
 if __name__ == '__main__':
     init_db()  # Initialize database and create table if needed
-    app.run(debug=True)
-

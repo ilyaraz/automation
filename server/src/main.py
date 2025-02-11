@@ -92,7 +92,7 @@ def log_request(request_body, identity):
     timestamp = datetime.utcnow().isoformat()
     c.execute(
         'INSERT INTO request_logs (timestamp, identity, request_body) VALUES (?, ?, ?)',
-        (timestamp, identity, str(request_body))
+        (timestamp, identity, json.dumps(request_body))
     )
     conn.commit()
     conn.close()

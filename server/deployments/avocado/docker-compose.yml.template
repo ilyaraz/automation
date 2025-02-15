@@ -1,0 +1,21 @@
+version: "3.8"
+
+networks:
+  internal-network:
+    driver: bridge
+
+services:
+  nginx_server:
+    image: nginx:1.27.4 
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./webserver_root:/usr/share/nginx/html
+    ports:
+      - "80:80"
+    networks:
+      - internal-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

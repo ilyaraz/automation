@@ -17,11 +17,14 @@ from cdktf_cdktf_provider_aws.data_aws_iam_policy_document import DataAwsIamPoli
 from cdktf_cdktf_provider_aws.data_aws_s3_bucket import DataAwsS3Bucket
 from cdktf_cdktf_provider_cloudinit.provider import CloudinitProvider
 from cdktf_cdktf_provider_cloudinit.data_cloudinit_config import DataCloudinitConfig, DataCloudinitConfigPart
+from cdktf_cdktf_provider_aws.ebs_volume import EbsVolume
+from cdktf_cdktf_provider_aws.volume_attachment import VolumeAttachment
 import json
 
 AWS_REGION = 'us-west-2'
 CERT_BUCKET_NAME = 'json-logger-certificates'
 BUNDLES_BUCKET_NAME = 'json-logger-deployment-bundles'
+DB_BACKUP_BUCKET_NAME = 'json-logger-db-backup'
 
 def init_aws(stack):
   AwsProvider(stack, 'aws',
@@ -41,6 +44,8 @@ class BucketsStack(TerraformStack):
       bucket=CERT_BUCKET_NAME)
     S3Bucket(self, 'bundles_bucket',
       bucket=BUNDLES_BUCKET_NAME)
+    S3Bucket(self, 'db_backup_bucket',
+      bucket=DB_BACKUP_BUCKET_NAME)
 
 
 class InfraStack(TerraformStack):
@@ -54,6 +59,7 @@ class InfraStack(TerraformStack):
     self._create_cloudinit_config()
     self._enable_s3_bucket_access()
     self._create_instance()
+    self._create_volume()
 
   def _create_variables(self):
     self.domain = TerraformVariable(self, 'domain', type='string')
@@ -142,6 +148,8 @@ class InfraStack(TerraformStack):
       bucket=CERT_BUCKET_NAME)
     bundles_bucket = DataAwsS3Bucket(self, 'bundles_bucket',
       bucket=BUNDLES_BUCKET_NAME)
+    db_backup_bucket = DataAwsS3Bucket(self, 'db_backup_bucket',
+      bucket=DB_BACKUP_BUCKET_NAME)
     instance_assume_role_policy = DataAwsIamPolicyDocument(self, 'instance_assume_role_policy',
       statement=[{
         'actions': ['sts:AssumeRole'],
@@ -163,6 +171,12 @@ class InfraStack(TerraformStack):
           'Resource': [
             bundles_bucket.arn,
             f'{bundles_bucket.arn}/*']},
+        {
+          'Effect': 'Allow',
+          'Action': ['s3:*'],
+          'Resource': [
+            db_backup_bucket.arn,
+            f'{db_backup_bucket.arn}/*']}
           ]}))
     iam_role = IamRole(self, 'iam_role',
       assume_role_policy=instance_assume_role_policy.json,
@@ -171,7 +185,7 @@ class InfraStack(TerraformStack):
       role=iam_role.name)
 
   def _create_instance(self):
-    Instance(self, 'instance',
+    self.instance = Instance(self, 'instance',
       ami=self.ami.id,
       instance_type='t3.micro',
       subnet_id=self.subnet.id,
@@ -180,6 +194,16 @@ class InfraStack(TerraformStack):
       iam_instance_profile=self.iam_instance_profile.name,
       metadata_options=InstanceMetadataOptions(
         http_tokens='optional'))
+
+  def _create_volume(self):
+    ebs_volume = EbsVolume(self, 'ebs_volume',
+      availability_zone=self.instance.availability_zone,
+      size=20,
+      type='gp2')
+    VolumeAttachment(self, 'ebs_volume_attachment',
+      device_name='xvdh',
+      volume_id=ebs_volume.id,
+      instance_id=self.instance.id)
 
 app = App()
 InfraStack(app, 'infra-stack')

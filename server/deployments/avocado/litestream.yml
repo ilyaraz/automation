@@ -1,0 +1,4 @@
+dbs:
+  - path: /mnt/db/requests.db
+    replicas:
+      - url: s3://json-logger-db-backup/db

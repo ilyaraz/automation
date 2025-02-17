@@ -23,4 +23,5 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 sudo mkfs -t ext4 /dev/nvme1n1
 sudo mkdir -p /mnt/ebs_disk
 sudo mount /dev/nvme1n1 /mnt/ebs_disk
-touch /mnt/ebs_disk/requests.db
+sudo mkdir -p /mnt/ebs_disk/db
+sudo docker run -v /mnt/ebs_disk/db:/mnt/db litestream/litestream:0.3.13 restore -o /mnt/db/requests.db s3://json-logger-db-backup/db

@@ -103,7 +103,12 @@ class InfraStack(TerraformStack):
           from_port=443,
           to_port=443,
           protocol='TCP',
-          cidr_blocks=['0.0.0.0/0'])],
+          cidr_blocks=['0.0.0.0/0']),
+        SecurityGroupIngress(
+          from_port=3000,
+          to_port=3000,
+          protocol='TCP',
+          cidr_blocks=['73.254.166.39/32'])],
       egress=[
         SecurityGroupEgress(
           from_port=0,
@@ -187,7 +192,7 @@ class InfraStack(TerraformStack):
   def _create_instance(self):
     self.instance = Instance(self, 'instance',
       ami=self.ami.id,
-      instance_type='t3.micro',
+      instance_type='t3.medium',
       subnet_id=self.subnet.id,
       vpc_security_group_ids=[self.security_group.id],
       user_data=self.cloudinit_config.rendered,

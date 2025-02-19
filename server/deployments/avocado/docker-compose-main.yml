@@ -18,6 +18,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  grafana:
+    image: grafana/grafana:11.5.1-ubuntu
+    volumes:
+      - /mnt/ebs_disk/db:/mnt/db
+      - /home/ubuntu/grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - internal-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
   nginx_server:
     image: nginx:1.27.4 
     volumes:

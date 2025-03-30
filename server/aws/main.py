@@ -25,6 +25,8 @@ AWS_REGION = 'us-west-2'
 CERT_BUCKET_NAME = 'json-logger-certificates'
 BUNDLES_BUCKET_NAME = 'json-logger-deployment-bundles'
 DB_BACKUP_BUCKET_NAME = 'json-logger-db-backup'
+INSTANCE_TYPE = 't3.micro'
+DISK_SIZE = 20
 
 def init_aws(stack):
   AwsProvider(stack, 'aws',
@@ -192,7 +194,7 @@ class InfraStack(TerraformStack):
   def _create_instance(self):
     self.instance = Instance(self, 'instance',
       ami=self.ami.id,
-      instance_type='t3.medium',
+      instance_type=INSTANCE_TYPE,
       subnet_id=self.subnet.id,
       vpc_security_group_ids=[self.security_group.id],
       user_data=self.cloudinit_config.rendered,
@@ -203,7 +205,7 @@ class InfraStack(TerraformStack):
   def _create_volume(self):
     ebs_volume = EbsVolume(self, 'ebs_volume',
       availability_zone=self.instance.availability_zone,
-      size=20,
+      size=DISK_SIZE,
       type='gp2')
     VolumeAttachment(self, 'ebs_volume_attachment',
       device_name='xvdh',

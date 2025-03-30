@@ -105,12 +105,7 @@ class InfraStack(TerraformStack):
           from_port=443,
           to_port=443,
           protocol='TCP',
-          cidr_blocks=['0.0.0.0/0']),
-        SecurityGroupIngress(
-          from_port=3000,
-          to_port=3000,
-          protocol='TCP',
-          cidr_blocks=['73.254.166.39/32'])],
+          cidr_blocks=['0.0.0.0/0'])],
       egress=[
         SecurityGroupEgress(
           from_port=0,
